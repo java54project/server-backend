@@ -28,7 +28,7 @@ mongoose
   .catch((err) => logger.error("Error to contact MongoDB:", err));
 
 // Routes TODO
-// app.use("/api/auth", authRoutes);
+ app.use("/api/auth", authRoutes);
 // app.use("/api/points", pointRoutes);
 // app.use("/api/upload", uploadRoutes);
 // app.use("/api/maps", mapStylesRoute);
