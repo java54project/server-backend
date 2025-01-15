@@ -4,88 +4,119 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import path from "path";
 import authRoutes from "./src/routes/auth.mjs";
-import pointRoutes from "./src/routes/points.mjs";
-import mapStylesRoute from "./src/routes/map.mjs";
-import uploadRoutes from "./src/routes/upload.mjs";
 import logger from "./src/middleware/logger.mjs";
 
-// environment veriables
+
+// Load environment variables
 dotenv.config();
-//const __dirname = path.resolve();
+
+
+const requiredEnv = ['MONGO_URI', 'NODE_ENV'];
+requiredEnv.forEach((env) => {
+  if (!process.env[env]) {
+	throw new Error(`Missing required environment variable: ${env}`);
+  }
+});
+
 
 const app = express();
 
-// Middleware
-app.use(cors()); //for crossnetworks communications
-app.use(express.json()); 
 
-// Connection to MongoDB
+// Middleware
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+}));
+app.use(express.json());
+
+
+// MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => logger.info("MongoDB started"))
-  .catch((err) => logger.error("Error to contact MongoDB:", err));
+  .then(() => logger.info("MongoDB connected"))
+  .catch((err) => logger.error("Error connecting to MongoDB:", err));
 
-// Routes TODO
- app.use("/api/auth", authRoutes);
-// app.use("/api/points", pointRoutes);
-// app.use("/api/upload", uploadRoutes);
-// app.use("/api/maps", mapStylesRoute);
 
-// error handler
+// Routes
+app.use("/api/auth", authRoutes);
+// Add other routes as needed
+
+
+// Error handler
 app.use((err, req, res, next) => {
-  console.error("Error:", err.message || err);
+  logger.error(`Error: ${err.message || err}`);
   res.status(err.status || 500).json({
-    message: err.message || "intrinsic error of the server",
+	message: err.message || "Internal server error",
   });
 });
 
-//For developement mode use localhost base url fot making paths
-const getBaseUrl = (port) => {
-    if (process.env.NODE_ENV === "development") {
-      logger.info("Detected local environment");
-      return `http://localhost:${port}`;
-    }
-    return `https://volchenko.click:${port}`;
-  };
 
-//  HTTP to HTTPS (only in production mode)
+// Determine base URL
+const getBaseUrl = (port) => {
+  if (process.env.NODE_ENV === "development") {
+	logger.info("Detected local environment");
+	return `http://localhost:${port}`;
+  }
+  return `https://volchenko.click:${port}`;
+};
+
+
+// Redirect HTTP to HTTPS in production
 if (process.env.NODE_ENV === "production") {
   app.use((req, res, next) => {
-    if (!req.secure) {
-      return res.redirect(`https://${req.headers.host}${req.url}`);
-    }
-    next();
+	if (!req.secure) {
+  	return res.redirect(`https://${req.headers.host}${req.url}`);
+	}
+	next();
   });
 }
 
-// reading sertificates for HTTPS (in production)
+
+// SSL configuration
 let sslOptions = {};
 if (process.env.NODE_ENV === "production") {
+  if (!fs.existsSync("/etc/letsencrypt/live/volchenko.click/privkey.pem") ||
+  	!fs.existsSync("/etc/letsencrypt/live/volchenko.click/fullchain.pem")) {
+	throw new Error("SSL certificates not found. Ensure paths are correct.");
+  }
+
+
   sslOptions = {
-    key: fs.readFileSync("/etc/letsencrypt/live/volchenko.click/privkey.pem"),
-    cert: fs.readFileSync("/etc/letsencrypt/live/volchenko.click/fullchain.pem"),
+	key: fs.readFileSync("/etc/letsencrypt/live/volchenko.click/privkey.pem"),
+	cert: fs.readFileSync("/etc/letsencrypt/live/volchenko.click/fullchain.pem"),
   };
 }
 
-// Server start
+
+// Start the server
 const PORT = process.env.PORT || 5001;
 
-const startServer = () => {
-  const baseUrl = getBaseUrl(PORT);
 
-  const serverCallback = async () => {
-    logger.info(
-      `${process.env.NODE_ENV === "production" ? "HTTPS" : "HTTP"} Server running on port: ${PORT}`
-    );
-  };
+const startServer = async () => {
+  try {
+	await mongoose.connect(process.env.MONGO_URI);
+	logger.info("MongoDB connected");
 
-  if (process.env.NODE_ENV === "production") {
-    https.createServer(sslOptions, app).listen(PORT, serverCallback);
-  } else {
-    app.listen(PORT, serverCallback);
+
+	const serverCallback = () => {
+  	logger.info(
+    	`${process.env.NODE_ENV === "production" ? "HTTPS" : "HTTP"} Server running on port: ${PORT}`
+  	);
+	};
+
+
+	if (process.env.NODE_ENV === "production") {
+  	https.createServer(sslOptions, app).listen(PORT, serverCallback);
+	} else {
+  	app.listen(PORT, serverCallback);
+	}
+  } catch (error) {
+	logger.error("Failed to start server:", error);
+	process.exit(1);
   }
 };
+
 
 startServer();
