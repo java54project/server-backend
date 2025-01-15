@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import authRoutes from "./src/routes/auth.mjs";
+import gameRoutes from "./src/routes/gamePathes.mjs"
 import logger from "./src/middleware/logger.mjs";
 
 
@@ -41,6 +42,7 @@ mongoose
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/gamePathes", gameRoutes );
 // Add other routes as needed
 
 

@@ -1,11 +1,10 @@
 import Joi from "joi";
 
 const fenRegex = /^([rnbqkpRNBQKP1-8]{1,8}\/){7}[rnbqkpRNBQKP1-8]{1,8} [wb] [KQkq\-]{1,4} [a-h1-8\-] \d+ \d+$/;
-const singleMoveRegex = /^[a-h][1-8][a-h][1-8]$/;
-const movesRegex = /^([a-h][1-8][a-h][1-8]\s)*[a-h][1-8][a-h][1-8]$/;
 
 // Schema for creating a new game
 export const createGameSchema = Joi.object({
+    email:Joi.string().email().required(),
     tournamentId: Joi.string().min(3).max(30), //TODO has to be improved
     deviceId: Joi.string().min(3).max(30).required(),
     board: Joi.number()
@@ -23,9 +22,7 @@ export const createGameSchema = Joi.object({
         .pattern(fenRegex)
         .message('Invalid FEN format')
         .required(),
-    moves: Joi.string()
-    .pattern(movesRegex)
-    .message("Invalid moves chess format"),
+   
 
     playingRules:Joi.string().valid(  
         "chess",
