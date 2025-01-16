@@ -1,11 +1,9 @@
 
 
-
 import { createLogger, format, transports } from 'winston';
 import { CloudWatchLogsClient, DescribeLogStreamsCommand, CreateLogStreamCommand, PutLogEventsCommand } from '@aws-sdk/client-cloudwatch-logs';
 import { Writable } from 'stream';
 import dotenv from 'dotenv';
-
 
 
 dotenv.config();
@@ -17,13 +15,12 @@ if (!region) {
 }
 
 
-const cloudwatchlogs = new CloudWatchLogsClient({
-  region: process.env.CLOUDWATCH_REGION || 'us-east-2',  
-});
+// CloudWatch Logs Client без явного указания креденшиалов
+const cloudwatchlogs = new CloudWatchLogsClient({ region });
 
 
-const logGroupName = 'chessAI';
-const logStreamName = 'server-backend';
+const logGroupName = process.env.CLOUDWATCH_LOG_GROUP || 'chessAI';
+const logStreamName = process.env.CLOUDWATCH_LOG_STREAM || 'server-backend';
 
 
 async function createLogStream() {
@@ -40,11 +37,7 @@ async function createLogStream() {
 	if (describeResponse.logStreams && describeResponse.logStreams.length > 0) {
   	console.log(`Log stream "${logStreamName}" already exists.`);
 	} else {
-  	const params = {
-    	logGroupName,
-    	logStreamName,
-  	};
-  	const command = new CreateLogStreamCommand(params);
+  	const command = new CreateLogStreamCommand({ logGroupName, logStreamName });
   	await cloudwatchlogs.send(command);
   	console.log(`Log stream "${logStreamName}" created successfully.`);
 	}
@@ -79,9 +72,7 @@ async function sendLogToCloudWatch(message) {
 class CloudWatchStream extends Writable {
   _write(chunk, encoding, callback) {
 	sendLogToCloudWatch(chunk.toString().trim())
-  	.then(() => {
-    	callback();
-  	})
+  	.then(() => callback())
   	.catch((err) => {
     	console.error('Error sending log to CloudWatch:', err);
     	callback(err);
@@ -98,25 +89,29 @@ const logger = createLogger({
   ),
   transports: [
 	new transports.Console(),
-	...(process.env.NODE_ENV === 'production' ? [
-  	new transports.Stream({
-    	stream: new CloudWatchStream(),
-  	})
-	] : []),  // adding CloudWatchStream to production only
+	...(process.env.NODE_ENV === 'production'
+  	? [
+      	new transports.Stream({
+        	stream: new CloudWatchStream(),
+      	}),
+    	]
+  	: []),
   ],
 });
 
 
-
 if (process.env.NODE_ENV === 'production') {
-  createLogStream().then(() => {
-	logger.info('Log stream check completed.');
-  }).catch((error) => {
-	logger.error('Error during log stream initialization:', error);
-  });
+  createLogStream()
+	.then(() => {
+  	logger.info('Log stream check completed.');
+	})
+	.catch((error) => {
+  	logger.error('Error during log stream initialization:', error);
+	});
 } else {
   logger.info('Skipping CloudWatch log stream creation in development.');
 }
 
 
 export default logger;
+
