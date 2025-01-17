@@ -45,6 +45,11 @@ const gameService = {
 
 	return await newGame.save();
   },
+
+  async getCurrentGameData (email) {
+	return await Game.find({ email: email, isGameFinished: false  }, "deviceId board fen moves lastMove");
+	}
+	
 };
 
 

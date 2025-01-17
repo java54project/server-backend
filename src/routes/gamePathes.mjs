@@ -10,59 +10,81 @@ const router = express.Router();
 
 // Create a new game
 router.post(
-  "/registerGame",
-  
-  asyncHandler(async (req, res) => {
-	const { error } = createGameSchema.validate(req.body);
-	if (error) {
-  	return res.status(400).json({ status: "fail", message: error.details[0].message });
-	}
+	"/registerGame",
+
+	asyncHandler(async (req, res) => {
+		const { error } = createGameSchema.validate(req.body);
+		if (error) {
+			return res.status(400).json({ status: "fail", message: error.details[0].message });
+		}
 
 
-	const {
-		email,
-    	tournamentId,
-    	deviceId,
-    	board,
-    	whitePlayerId,
-    	blackPlayerId,
-    	fen,
-    	moves,
-    	lastMove,
-    	playingRules,
-    	isGameFinished,
-    	result,
-  	
-	} = req.body;
+		const {
+			email,
+			tournamentId,
+			deviceId,
+			board,
+			whitePlayerId,
+			blackPlayerId,
+			fen,
+			moves,
+			lastMove,
+			playingRules,
+			isGameFinished,
+			result,
+
+		} = req.body;
 
 
-	try {
-  	const newGame = await gameService.registerGame({
-    	email,
-    	tournamentId,
-    	deviceId,
-    	board,
-    	whitePlayerId,
-    	blackPlayerId,
-    	fen,
-    	moves,
-    	lastMove,
-    	playingRules,
-    	isGameFinished,
-    	result,
-  	});
+		try {
+			const newGame = await gameService.registerGame({
+				email,
+				tournamentId,
+				deviceId,
+				board,
+				whitePlayerId,
+				blackPlayerId,
+				fen,
+				moves,
+				lastMove,
+				playingRules,
+				isGameFinished,
+				result,
+			});
 
 
-  	res.status(201).json({
-    	status: "success",
-    	message: "Adding new game completed successfully",
-    	data: newGame,
-  	});
-	} catch (err) {
-  	res.status(400).json({ status: "fail", message: err.message });
-	}
-  })
+			res.status(201).json({
+				status: "success",
+				message: "Adding new game completed successfully",
+				data: newGame,
+			});
+		} catch (err) {
+			res.status(400).json({ status: "fail", message: err.message });
+		}
+	})
 );
+
+// Get current status of game data by email
+router.get(
+	"/getCurrentData",
+	asyncHandler(async (req, res) => {
+	const { email } = req.query;
+	if (!email) {
+	return res.status(400).json({ status: "fail", message: "Email is required" });
+	}
+	
+	try {
+	const currentData = await gameService.getCurrentGameData(email);
+	res.status(200).json({
+	status: "success",
+	data: currentData,
+	});
+	} catch (err) {
+	res.status(400).json({ status: "fail", message: err.message });
+	}
+	})
+	);
+	
 
 
 export default router;
