@@ -56,8 +56,13 @@ const GameSchema = new mongoose.Schema({
 	default: "",
   },
   movesHistory: {
-    type: [String],
-    default: [] 
+    type: [
+      {
+        move: { type: String, required: true },
+        timestamp: { type: Number, required: true }, 
+      },
+    ],
+    default: [],
   },
 
   START_FEN: {
