@@ -55,6 +55,15 @@ const GameSchema = new mongoose.Schema({
 	enum: ["whites won", "blacks won", "draw", ""],
 	default: "",
   },
+  movesHistory: {
+    type: [String],
+    default: [] 
+  },
+
+  START_FEN: {
+	type: String,
+	default: "",
+  }
 
 });
 

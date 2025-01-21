@@ -18,6 +18,8 @@ const gameService = {
 	playingRules,
 	isGameFinished = false,
 	result = "",
+	movesHistory = [],
+	START_FEN = ""
   }) {
 	// Checking if game already exists
 	const existingGame = await Game.findOne({ tournamentId, round, deviceId, board });
@@ -42,6 +44,8 @@ const gameService = {
   	playingRules,
   	isGameFinished,
   	result,
+	movesHistory,
+	START_FEN
 	});
 
 

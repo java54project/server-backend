@@ -33,6 +33,10 @@ router.post(
 			playingRules,
 			isGameFinished,
 			result,
+			movesHistory,
+			START_FEN
+
+
 
 		} = req.body;
 
@@ -52,6 +56,8 @@ router.post(
 				playingRules,
 				isGameFinished,
 				result,
+				movesHistory,
+				START_FEN
 			});
 
 
@@ -70,9 +76,9 @@ router.post(
 router.get(
 	"/getCurrentData",
 	asyncHandler(async (req, res) => {
-	const { email, tournamentId, round } = req.query;
-	if (!email||!tournamentId||!round) {
-	return res.status(400).json({ status: "fail", message: "Email, Tournament ID and Round ID are required" });
+	const { email, tournamentId } = req.query;
+	if (!email||!tournamentId) {
+	return res.status(400).json({ status: "fail", message: "Email and Tournament ID are required" });
 	}
 	
 	try {
