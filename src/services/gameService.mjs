@@ -7,6 +7,7 @@ const gameService = {
   async registerGame({
 	email,
 	tournamentId,
+	round,
 	deviceId,
 	board,
 	whitePlayerId,
@@ -19,9 +20,9 @@ const gameService = {
 	result = "",
   }) {
 	// Checking if game already exists
-	const existingGame = await Game.findOne({ deviceId, board });
-	if (existingGame && !isGameFinished) {
-  	logger.error("Game already exists:", deviceId, board);
+	const existingGame = await Game.findOne({ tournamentId, round, deviceId, board });
+	if (existingGame) {
+  	logger.error("Game already exists:", tournamentId, round, deviceId, board);
   	throw new Error("Game already exists");
 	}
 
@@ -30,8 +31,9 @@ const gameService = {
 	const newGame = new Game({
   	email,
   	tournamentId,
+	round,
   	deviceId,
-  	board,
+	board,
   	whitePlayerId,
   	blackPlayerId,
   	fen,
@@ -46,8 +48,8 @@ const gameService = {
 	return await newGame.save();
   },
 
-  async getCurrentGameData (email) {
-	return await Game.find({ email: email, isGameFinished: false  }, "deviceId board fen moves lastMove");
+  async getCurrentGameData (email, tournamentId) {
+	return await Game.find({ email: email, tournamentId: tournamentId }, "tournamentId round deviceId board whitePlayerId blackPlayerId fen moves lastMove isGameFinished result");
 	}
 	
 };

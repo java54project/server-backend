@@ -22,6 +22,7 @@ router.post(
 		const {
 			email,
 			tournamentId,
+			round,
 			deviceId,
 			board,
 			whitePlayerId,
@@ -40,6 +41,7 @@ router.post(
 			const newGame = await gameService.registerGame({
 				email,
 				tournamentId,
+				round,
 				deviceId,
 				board,
 				whitePlayerId,
@@ -68,9 +70,9 @@ router.post(
 router.get(
 	"/getCurrentData",
 	asyncHandler(async (req, res) => {
-	const { email } = req.query;
-	if (!email) {
-	return res.status(400).json({ status: "fail", message: "Email is required" });
+	const { email, tournamentId, round } = req.query;
+	if (!email||!tournamentId||!round) {
+	return res.status(400).json({ status: "fail", message: "Email, Tournament ID and Round ID are required" });
 	}
 	
 	try {

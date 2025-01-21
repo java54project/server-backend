@@ -10,6 +10,10 @@ const GameSchema = new mongoose.Schema({
 	type: String,
 	default: null,
   },
+  round:{
+	type: String,
+	default: null,
+  },
   deviceId: {
 	type: String,
 	required: [true, "Device ID is required. Choose device ID from list"],
@@ -51,6 +55,7 @@ const GameSchema = new mongoose.Schema({
 	enum: ["whites won", "blacks won", "draw", ""],
 	default: "",
   },
+
 });
 
 
