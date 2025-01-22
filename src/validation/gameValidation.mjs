@@ -6,6 +6,7 @@ const fenRegex = /^([rnbqkpRNBQKP1-8]{1,8}\/){7}[rnbqkpRNBQKP1-8]{1,8} [wb] [KQk
 export const createGameSchema = Joi.object({
     email:Joi.string().email().required(),
     tournamentId: Joi.string().min(3).max(30), //TODO has to be improved
+    round:Joi.string().min(3).max(30), //TODO has to be improved
     deviceId: Joi.string().min(3).max(30).required(),
     board: Joi.number()
         .min(1)

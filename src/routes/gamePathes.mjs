@@ -82,7 +82,7 @@ router.get(
 	}
 	
 	try {
-	const currentData = await gameService.getCurrentGameData(email);
+	const currentData = await gameService.getCurrentGameData(email, tournamentId);
 	res.status(200).json({
 	status: "success",
 	data: currentData,
